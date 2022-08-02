@@ -1,6 +1,6 @@
 <script>
 import _ from 'underscore';
-import axios from 'axios';
+//import axios from 'axios';
 import humanizeDuration from 'humanize-duration';
 import TrashIcon from 'bytesize-icons/dist/icons/trash.svg';
 import FlagIcon from 'bytesize-icons/dist/icons/flag.svg';
