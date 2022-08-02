@@ -47,7 +47,8 @@ export default ({
     isPlayer2() { return this.address === this.player2 },
     p1Color() { return this.p1IsWhite ? 'white' : 'black' },
     p2Color() { return this.p1IsWhite ? 'black' : 'white' },
-    statusPending() { return this.challengeStatus === challengeStatus.pending },
+    isPending() { return this.challengeStatus === challengeStatus.pending },
+    isFinished() { return this.challengeStatus > challengeStatus.pending },
     // NOTE The order of these is chosen so that it will default to
     //      the current player defaults to player 1 is no account is
     //      authenticated
@@ -103,17 +104,15 @@ export default ({
   methods: {
     async initChallenge(addr) {
       console.log('Initialize challenge contract data', addr);
-      if (!this.provider) {
-        console.warn('Wallet is NOT connected');
-        setTimeout(() => this.initChallenge(addr), 200);
-        return;
-      }
       this.challenge = this.contracts.challenge(addr);
+      if (!this.challenge) {
+        this.challenge = this.contracts.registerChallenge(addr);
+      }
       await this.refreshChallenge();
       this.challengeLoaded = true;
     },
     async refreshChallenge() {
-      console.log('Refresh challenge data', this.challenge.address);
+      console.log('Refresh challenge data');
       [ this.player1,
         this.p1Balance,
         this.player2,
@@ -161,7 +160,7 @@ export default ({
         if (ev.blockNumber > latestBlock) {
           console.log('Received challenge', addr);
           latestBlock = ev.blockNumber;
-          this.lobby.newChallenge(addr, from, to);
+          this.lobby.newChallenge(addr);
           if (cb) cb(addr, from, to);
         }
       });

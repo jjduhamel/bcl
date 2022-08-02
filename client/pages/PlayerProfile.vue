@@ -61,11 +61,11 @@ export default {
                           , { value: this.wagerAmount });
       this.waiting = true;
       const eventFilter = lobby.filters.CreatedChallenge(null
-                                                       , this.wallet.address
+                                                       , this.address
                                                        , this.opponent);
       lobby.once(eventFilter, async (addr, from, to) => {
         console.log('Issued challenge', addr);
-        await this.lobby.newChallenge(addr, from, to);
+        await this.lobby.newChallenge(addr);
         this.waiting = false;
         this.$router.push('/challenge/'+addr);
       });
@@ -103,6 +103,7 @@ export default {
         <button
           id='challenge-button'
           @click='showModal = true'
+          :disabled='waiting'
         >Challenge!</button>
       </div>
     </div>
@@ -157,7 +158,6 @@ export default {
       @update:tpm='val => displayTPM = val'
       v-bind:timeUnits='timeUnits'
       @update:time-units='val => timeUnits = val'
-      :waiting='waiting'
     />
   </div>
 </template>

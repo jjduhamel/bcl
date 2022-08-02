@@ -86,6 +86,8 @@ export default {
       this.listenForChallenges(() => this.playAudio('NewChallenge'));
       this.handleAcceptedChallenge(() => this.playAudio('Notify'));
       this.handleCanceledChallenge(() => this.playAudio('Explosion'));
+      this.listenForVictory(() => this.playAudio('Victory'));
+      this.listenForDefeat(() => this.playAudio('Defeat'));
     },
     async fetchPlayerData() {
       const { lobby } = this.contracts;
@@ -115,6 +117,7 @@ export default {
   },
   created() {
     this.loading = true;
+    this.$recaptchaLoaded().then(() => this.$recaptchaInstance.hideBadge());
     this.init().then(() => this.loading = false);
   }
 }
@@ -219,8 +222,8 @@ html, body {
   margin: 0;
 
   #app {
-    max-height: 49em;
-    max-width: 49em;
+    //max-height: 49em;
+    max-width: 56em;
     height: 98%;
     @extend .margin-lg;
     @extend .flex-col;

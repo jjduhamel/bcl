@@ -1,5 +1,6 @@
 <script>
 import _ from 'underscore';
+import axios from 'axios';
 import humanizeDuration from 'humanize-duration';
 import TrashIcon from 'bytesize-icons/dist/icons/trash.svg';
 import FlagIcon from 'bytesize-icons/dist/icons/flag.svg';
@@ -76,7 +77,7 @@ export default {
     playerTimeExpired(isOver) { if (isOver) this.showModal = true }
   },
   methods: {
-    async chooseMove(from, to) {
+    chooseMove(from, to) {
       console.log('Choose move', from, to);
       const san = this.tryMove(from+to);
       if (!san) return;
@@ -86,6 +87,29 @@ export default {
     },
     async submitMove() {
       console.log('Submit move', this.proposedMove);
+
+      // WIP Google V3 recaptcha
+      const token = await this.$recaptcha('login')
+      console.log('recaptcha', token);
+      const algoz = await fetch('https://api.algoz.xyz/validate', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          application_id: '1c0958b5-1e75-480b-9301-fbc08b4f866e',
+          validation_proof: token
+        })
+      });
+      /*
+      const algoz = await axios.post('https://api.algoz.xyz/validate', {
+        application_id: '1c0958b5-1e75-480b-9301-fbc08b4f866e',
+        validation_proof: token
+      });
+      */
+      console.log('algoz', algoz);
+
       await this.game.move(this.proposedMove, '0x00');
       this.waiting = true;
       this.playAudio('swell1');
@@ -109,7 +133,6 @@ export default {
       lobby.once(eventFilter, game => {
         console.log('Resigned');
         this.waiting = false;
-        this.playAudio('Defeat');
         this.refreshGame();
       });
     },
@@ -124,7 +147,6 @@ export default {
       lobby.once(eventFilter, (game, winner) => {
         console.log('Victory', winner);
         this.waiting = false;
-        this.playAudio('Victory');
         this.refreshGame();
       });
     },
@@ -132,10 +154,8 @@ export default {
   },
   created() {
     const { contract } = this.$route.params;
-    console.log('game', contract);
     this.initGame(contract)
         .then(() => {
-          console.log('done');
           if (this.inProgress) {
             // Start the timer at the nearest second
             const timeout = 1000 - Date.now()%1000;
@@ -149,9 +169,8 @@ export default {
 </script>
 
 <template>
-  <div v-if='gameLoaded' id='chess-game'>
-    <div v-if='gameStatus === 0' class='text-xl margin-tb'>Current Game</div>
-    <div v-else class='text-xl margin-tb'>Archived Game</div>
+  <div v-if='gameLoaded' id='chess-game' class='margin-lg-tb'>
+    <div v-if='gameStatus > 0' class='text-xl margin-tb'>Archived Game</div>
 
     <div class='flex-row'>
       <ChessBoard
@@ -161,8 +180,8 @@ export default {
         @onMove='chooseMove'
       />
 
-      <div class='flex-1 flex-down'>
-        <div id='game-info' class='flex-shrink bordered padded container text-center'>
+      <div id='game-sidebar' class='flex-down'>
+        <div id='game-info' class='flex-shrink bordered padded container margin-rl text-center'>
           <div id='contract-state' class='text-center text-ml'>
             <div v-if='isWinner' class='text-sentance'>You Won!</div>
             <div v-else-if='isLoser' class='text-sentance'>You Lost</div>
@@ -173,6 +192,7 @@ export default {
           <div class='text-ms margin-tb'>
             <div id='current-move'>
               <div v-if='gameOver' class='text-sentance'>Game Over</div>
+              <div v-else-if='waiting && didChooseMove' class='text-sentance'>Pending...</div>
               <div v-else-if='didChooseMove' class='text-sentance'>Submit Move</div>
               <div v-else-if='isCurrentMove' class='text-sentance'>Your Move</div>
               <div v-else-if='isOpponentsMove' class='text-sentance'>Opponent's Move</div>
@@ -189,36 +209,38 @@ export default {
           </div>
         </div>
 
-        <div v-if='isPlayer' class='flex-1 flex-down flex-center justify-end'>
-          <div id='controlbar' class='flex-between margin margin-xl-rl'>
-            <button :disabled='true'>
+        <div v-if='isPlayer' class='flex-1 flex-down flex-center justify-end margin-lg'>
+          <div id='control-bar' class='flex-between margin'>
+            <button
+              :disabled='!didChooseMove'
+              @click='() => { undoMove(); didChooseMove=false }'
+            >
               <TrashIcon />
             </button>
 
             <button :disabled='true'>
               <FlagIcon />
             </button>
-
-            <button
-              @click='resign'
-              :disabled='disableControls'
-            >
-              <BanIcon viewBox='0 0 32 32' />
-            </button>
           </div>
 
           <button
             v-if='inProgress && opponentTimeExpired'
-            class='margin margin-xl-rl'
+            class='margin-tb'
             @click='claimVictory'
             :disabled='disableControls'
           >Victory!</button>
           <button
             v-else
-            class='margin margin-xl-rl'
+            class='margin-tb'
             @click='submitMove'
             :disabled='disableControls || !didChooseMove'
           >Move</button>
+
+          <button
+            class='margin-tb'
+            @click='resign'
+            :disabled='disableControls'
+          >Resign</button>
         </div>
       </div>
     </div>
@@ -280,7 +302,11 @@ export default {
 
 <style lang='scss'>
 #chess-game {
-  #controlbar {
+  #game-sidebar {
+    width: 12em;
+  }
+
+  #control-bar {
     button {
       margin: 0;
       padding: 0;

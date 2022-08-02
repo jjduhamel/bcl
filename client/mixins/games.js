@@ -180,7 +180,7 @@ export default ({
       const moves = await this.game.queryFilter(this.game.filters.MoveSAN);
       for (var ev of moves) {
         let [ player, san, flags ] = ev.args;
-        await this.tryMove(san);
+        this.tryMove(san);
       }
 
       // FIXME: This is a hack just to make some other bug go away.  If you
@@ -217,7 +217,25 @@ export default ({
       };
       this.moveTimer = setInterval(queryMoves, 1000);
     },
-    async tryMove(san) {
+    /*
+    async listenForVictory(cb) {
+      let latestBlock = await this.provider.getBlockNumber();
+      const eventFilter = this.lobby.filters.GameFinished(null, this.opponent);
+      const queryMoves = () => {
+        this.game.queryFilter(eventFilter, latestBlock+1).then(moves => {
+          if (moves.length > 0) this.refreshGame();
+          for (var ev of moves) {
+            const [ player, san, flags ] = ev.args;
+            if (cb) cb(player, san, flags);
+            if (player == this.opponent) this.tryMove(san);
+            latestBlock = ev.blockNumber;
+          }
+        });
+      };
+      this.finishedTimer = setInterval(queryMoves, 1000);
+    },
+    */
+    tryMove(san) {
       const move = this.gameEngine.move(san, { sloppy: true });
       if (!move) {
         console.warn('Attempted illegal move', san);
@@ -229,6 +247,13 @@ export default ({
       console.log(`Moved ${move.san} (${move.from} -> ${move.to})`);
       this.isWhiteMove = !this.isWhiteMove;
       this.halfmoves++;
+      return move.san;
+    },
+    undoMove() {
+      const move = this.gameEngine.undo();
+      this.isWhiteMove = !this.isWhiteMove;
+      this.halfmoves--;
+      console.log('Undo move', move.san);
       return move.san;
     },
     printGameStatus() {

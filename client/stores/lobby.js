@@ -21,7 +21,7 @@ export default defineStore({
   }),
   actions: {
     metadata(addr) { return this.metadata[addr] },
-    async newChallenge(addr, from, to) {
+    async newChallenge(addr) {
       console.log('Initialize new challenge', addr);
       const contracts = useContractStore();
 
@@ -74,7 +74,7 @@ export default defineStore({
       this.metadata[addr].loading = false;
       return this.metadata[addr];
     },
-    async newGame(addr, white, black) {
+    async newGame(addr) {
       console.log('Initialize new game', addr);
       const contracts = useContractStore();
 

@@ -20,7 +20,7 @@ export default {
     };
   },
   computed: {
-    disableControls() { return this.waiting || !this.challengeLoaded || !this.statusPending }
+    disableControls() { return this.waiting || !this.challengeLoaded || !this.isPending }
   },
   methods: {
     async modify() {
@@ -38,6 +38,31 @@ export default {
         this.waiting = false;
       });
     },
+    async handleChallengeAccepted() {
+      console.log('Listen for AcceptedChallenge event');
+      const { lobby } = this.contracts;
+      const eventFilter = lobby.filters.AcceptedChallenge(this.challenge.address);
+      lobby.once(eventFilter, (addr, p1, p2) => {
+        console.log('Challenge Accepted', addr);
+        this.lobby.terminate(addr);
+        this.challenge.game().then(g => {
+          console.log('New game created', g);
+          this.lobby.newGame(g);
+          this.$router.push('/game/'+g);
+        });
+      });
+      // TODO Polling
+    },
+    async handleChallengeDeclined() {
+      console.log('Listen for CanceledChallenge event');
+      const { lobby } = this.contracts;
+      const eventFilter = lobby.filters.CanceledChallenge(this.challenge.address);
+      lobby.once(eventFilter, (addr, p1, p2) => {
+        console.log('Challenge Declined', addr);
+        this.lobby.terminate(addr);
+      });
+      // TODO Polling
+    },
     async accept() {
       console.log('Accepted challenge');
       await this.challenge.accept({ value: `${this.balanceDiff}` });
@@ -46,10 +71,7 @@ export default {
       const eventFilter = lobby.filters.GameStarted(null, this.address, this.opponent);
       lobby.once(eventFilter, (addr, p1, p2) => {
         console.log('New game created', addr);
-        this.lobby.terminate(this.challenge.address);
-        this.lobby.newGame(addr, p1, p2);
         this.waiting = false;
-        this.$router.push('/game/'+addr);
       });
     },
     async decline() {
@@ -60,9 +82,8 @@ export default {
       const eventFilter = lobby.filters.CanceledChallenge(this.challenge.address);
       lobby.once(eventFilter, (addr, p1, state) => {
         console.log('Challenge declined', addr);
-        this.lobby.terminate(addr);
         this.waiting = false;
-        this.initChallenge(addr);
+        this.refreshChallenge();
       });
     },
     async cancel() {
@@ -73,15 +94,18 @@ export default {
       const eventFilter = lobby.filters.CanceledChallenge(this.challenge.address);
       lobby.once(eventFilter, (addr, p1, state) => {
         console.log('Challenge cancelled', addr);
-        this.lobby.terminate(addr);
         this.waiting = false;
-        this.initChallenge(addr);
+        this.refreshChallenge();
       });
     }
   },
   created() {
     const { contract } = this.$route.params;
-    this.initChallenge(contract)
+    this.initChallenge(contract).then(() => {
+      if (this.isPending) {
+        this.handleChallengeAccepted();
+      }
+    });
   }
 }
 </script>

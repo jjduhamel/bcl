@@ -104,8 +104,6 @@ export default {
 
 <template>
   <div id='lobby'>
-    <div class='text-xl margin-tb'>Lounge</div>
-
       <form id='player-lookup' class='margin-lg-tb'>
         <input
           type='text'
