@@ -2,6 +2,7 @@
 pragma solidity >=0.4.22 <0.9.0;
 import './Lobby.sol';
 import './ChessGame.sol';
+import './ChessGameAlgoz.sol';
 import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 
 contract Challenge {
@@ -179,7 +180,7 @@ contract Challenge {
     Lobby(lobby).updateChallenge(msg.sender, receiver, state);
     address white = whitePlayer();
     address black = blackPlayer();
-    ChessGame _game = new ChessGame(white, black, timePerMove);
+    ChessGame _game = new ChessGameAlgoz(white, black, timePerMove);
     game = address(_game);
     Lobby(lobby).startGame(game, white, black);
     refundExcess();

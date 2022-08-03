@@ -1,4 +1,6 @@
+// SPDX-License-Identifier: GPL-V3
 pragma solidity >=0.4.22 <0.9.0;
+import './Lobby.sol';
 import './ChessGame.sol';
 import './lib/Algoz.sol';
 
@@ -6,11 +8,11 @@ contract ChessGameAlgoz is ChessGame, Algoz {
   // FIXME Should check this is being created by the Lobby contract
   constructor(address white
             , address black
-            , uint movetime
-            , address algozSigningAddress
-            , uint algozTTL)
+            , uint movetime)
   ChessGame(white, black, movetime) {
-    init_algoz(algozSigningAddress, true, algozTTL);
+    // For now just use 10 blocks for expiry
+    address algozSigner = Lobby(lobby).algozSigningAddress();
+    init_algoz(algozSigner, 10);
   }
 
   function move(string memory san

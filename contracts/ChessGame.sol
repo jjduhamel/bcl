@@ -5,9 +5,9 @@ import './Challenge.sol';
 import './lib/stringUtils.sol';
 
 contract ChessGame {
+  address public immutable arbiter;
   address public immutable lobby;
   address public immutable challenge;
-  address public immutable arbiter;
   address public immutable whitePlayer;
   address public immutable blackPlayer;
   uint public immutable timePerMove;      // Seconds per move
@@ -90,12 +90,12 @@ contract ChessGame {
   constructor(address white, address black, uint movetime) {
     challenge = msg.sender;
     lobby = Challenge(challenge).lobby();
+    arbiter = Lobby(lobby).arbiter();
     whitePlayer = white;
     blackPlayer = black;
     timePerMove = movetime;
     isWhiteMove = true;
     timeOfLastMove = block.timestamp;
-    arbiter = Lobby(lobby).arbiter();
     state = State.Started;
   }
 
