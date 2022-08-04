@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import { Chess, SQUARES } from 'chess.js';
-import { Contract, BigNumber as BN } from 'ethers';
+import { BigNumber as BN } from 'ethers';
 import ChallengeContract from '../contracts/Challenge';
 import { gameStatus } from '../constants/bcl';
 import useContractStore from '../stores/contracts';
@@ -147,7 +147,7 @@ export default ({
       return this.winner === this.opponent
           || this.isInCheckmate
           || this.playerTimeExpired;
-    },
+    }
   },
   methods: {
     async initGame(address) {
@@ -180,7 +180,7 @@ export default ({
       const moves = await this.game.queryFilter(this.game.filters.MoveSAN);
       for (var ev of moves) {
         let [ player, san, flags ] = ev.args;
-        await this.tryMove(san);
+        this.tryMove(san);
       }
 
       // FIXME: This is a hack just to make some other bug go away.  If you
@@ -217,7 +217,7 @@ export default ({
       };
       this.moveTimer = setInterval(queryMoves, 1000);
     },
-    async tryMove(san) {
+    tryMove(san) {
       const move = this.gameEngine.move(san, { sloppy: true });
       if (!move) {
         console.warn('Attempted illegal move', san);
@@ -229,6 +229,13 @@ export default ({
       console.log(`Moved ${move.san} (${move.from} -> ${move.to})`);
       this.isWhiteMove = !this.isWhiteMove;
       this.halfmoves++;
+      return move.san;
+    },
+    undoMove() {
+      const move = this.gameEngine.undo();
+      this.isWhiteMove = !this.isWhiteMove;
+      this.halfmoves--;
+      console.log('Undo move', move.san);
       return move.san;
     },
     printGameStatus() {

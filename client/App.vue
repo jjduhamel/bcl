@@ -86,6 +86,8 @@ export default {
       this.listenForChallenges(() => this.playAudio('NewChallenge'));
       this.handleAcceptedChallenge(() => this.playAudio('Notify'));
       this.handleCanceledChallenge(() => this.playAudio('Explosion'));
+      this.listenForVictory(() => this.playAudio('Victory'));
+      this.listenForDefeat(() => this.playAudio('Defeat'));
     },
     async fetchPlayerData() {
       const { lobby } = this.contracts;
@@ -115,6 +117,7 @@ export default {
   },
   created() {
     this.loading = true;
+    this.$recaptchaLoaded().then(() => this.$recaptchaInstance.hideBadge());
     this.init().then(() => this.loading = false);
   }
 }
@@ -178,9 +181,8 @@ export default {
     <div id='footer'>
       <div class='flex flex-grow'>
         <div class='text-sm margin-sm'>
-          Currently deployed to <a href='https://rinkebyfaucet.com/'>Rinkeby</a> and <a href='https://goerlifaucet.com/'>Goerli</a> testnets.
+          This site is protected from bots by <a href='https://algoz.xyz/'>Algoz</a>
         </div>
-        <div class='text-sm margin-sm'>Please file bugs :)</div>
       </div>
       <a href='https://twitter.com/TheChessLounge'>
         <TwitterIcon
@@ -219,8 +221,7 @@ html, body {
   margin: 0;
 
   #app {
-    max-height: 49em;
-    max-width: 49em;
+    max-width: 56em;
     height: 98%;
     @extend .margin-lg;
     @extend .flex-col;

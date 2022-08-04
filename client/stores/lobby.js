@@ -4,12 +4,6 @@ import useWalletStore from './wallet';
 import useContractStore from './contracts';
 import { challengeStatus } from '../constants/bcl';
 
-/* metadata schema
-  * active: bool    ---   Gets set to false when the contract terminates
-  * waiting: bool   ---   Are we waiting for the next player to do something
-*/
-
-// FIXME: Need to enforce exclusivity of pending and waiting challenges
 export default defineStore({
   id: 'lobby',
   state: () => ({
@@ -21,7 +15,7 @@ export default defineStore({
   }),
   actions: {
     metadata(addr) { return this.metadata[addr] },
-    async newChallenge(addr, from, to) {
+    async newChallenge(addr) {
       console.log('Initialize new challenge', addr);
       const contracts = useContractStore();
 
@@ -74,7 +68,7 @@ export default defineStore({
       this.metadata[addr].loading = false;
       return this.metadata[addr];
     },
-    async newGame(addr, white, black) {
+    async newGame(addr) {
       console.log('Initialize new game', addr);
       const contracts = useContractStore();
 

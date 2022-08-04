@@ -3,7 +3,6 @@ import _ from 'underscore';
 import humanizeDuration from 'humanize-duration';
 import { Contract } from 'ethers';
 import { gameStatus, gameOutcome } from '../constants/bcl';
-import GameContract from '../contracts/ChessGame';
 import ethMixin from '../mixins/ethereum';
 import walletMixin from '../mixins/wallet';
 import gameMixin from '../mixins/games';

@@ -93,7 +93,7 @@ export default {
       let algoz;
       if (!this.$recaptcha) await this.$recaptchaLoaded();
       const token = await this.$recaptcha('login');
-      if ([ 'unknown', 'development', 'test' ].contains(this.wallet.network)) {
+      if ([ 'unknown', 'development', 'test' ].includes(this.wallet.network)) {
         // XXX This is the development endpoint.  We tell what block to use.
         const latestBlock = await this.provider.getBlockNumber();
         algoz = await axios.post('https://api.algoz.xyz/development/', {

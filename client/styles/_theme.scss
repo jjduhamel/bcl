@@ -18,6 +18,8 @@
   button:disabled {
     color: lightgrey;
     border-color: lightgrey;
+
+    svg { stroke: lightgrey };
   }
 
   input {

@@ -5,17 +5,21 @@
   "author": "vitogit <vitogit@users.noreply.github.com>",
   "license": "GPLv3",
   "scripts": {
-    "blockchain": "ganache",
+    "new:migration": "cp migrations/x_upgrade_lobby.js migrations/$(date +%s)_upgrade_lobby.js",
+    "new:test": "truffle create test",
     "serve": "vue-cli-service serve",
+    "serve:static": "http-server --cors '*' dist",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
+    "deploy": "aws --profile hbpcb s3 sync --delete dist s3://blockchain-chess-lounge",
+    "migrate": "truffle compile --all && truffle migrate",
     "test": "truffle test --network test",
-    "deploy": "aws --profile hbpcb s3 sync --delete dist s3://blockchain-chess-lounge"
+    "lint": "vue-cli-service lint"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.7.1",
     "@openzeppelin/contracts-upgradeable": "^4.7.2",
     "@vue/composition-api": "^1.7.0",
+    "axios": "^0.27.2",
     "bytesize-icons": "^1.4.0",
     "chess.js": "^0.13.3",
     "chessground": "^8.2.1",
@@ -27,6 +31,7 @@
     "underscore": "^1.13.4",
     "vue": "^2.6.11",
     "vue-chessboard": "^0.6.6",
+    "vue-recaptcha-v3": "^1.9.0",
     "vue-router": "3.5.2"
   },
   "devDependencies": {
@@ -35,6 +40,7 @@
     "@vue/cli-plugin-babel": "~5.0.6",
     "@vue/cli-service": "~5.0.6",
     "file-loader": "^6.2.0",
+    "http-server": "^14.1.1",
     "node-sass": "^7.0.1",
     "sass-loader": "^13.0.1",
     "vue-loader": "^17.0.0",

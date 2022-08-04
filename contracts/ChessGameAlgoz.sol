@@ -9,9 +9,9 @@ contract ChessGameAlgoz is ChessGame, Algoz {
             , address black
             , uint movetime)
   ChessGame(white, black, movetime) {
-    bool _enabled = Lobby(lobby).__algozEnabled();
-    address _signer = Lobby(lobby).__algozSigner();
-    uint _ttl = Lobby(lobby).__algozTTL();
+    bool _enabled = Lobby(lobby).__authEnabled();
+    address _signer = Lobby(lobby).__authSigner();
+    uint _ttl = Lobby(lobby).__authTokenTTL();
     init_algoz(_signer, _ttl, _enabled);
   }
 

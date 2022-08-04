@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { Contract } from 'ethers';
 import LobbyContract from '../contracts/Lobby';
 import ChallengeContract from '../contracts/Challenge';
-import GameContract from '../contracts/ChessGame';
+import GameContract from '../contracts/ChessGameAlgoz.json';
 import useWalletStore from './wallet';
 
 // TODO At some point you'll need to keep the challenges and games in here

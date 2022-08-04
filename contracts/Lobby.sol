@@ -37,10 +37,10 @@ contract Lobby {
   mapping(address => ChallengeMetadata) internal challenges;
   mapping(address => GameMetadata) internal games;
 
-  // Algoz things
-  bool public __algozEnabled;
-  address public __algozSigner;
-  uint public __algozTTL;
+  // Algoz Authentication
+  bool public __authEnabled;
+  address public __authSigner;
+  uint public __authTokenTTL;
 
   modifier isCurrentChallenge {
     require(challenges[msg.sender].exists, 'ChallengeContractOnly');
@@ -133,14 +133,14 @@ contract Lobby {
   /*
    * Arbiter functions
    */
-
   function setArbiter(address _arbiter) external arbiterOnly {
     arbiter = _arbiter;
   }
 
-  function initAlgoz(address _algoz, uint _ttl, bool _enabled) external arbiterOnly {
-    __algozSigner = _algoz;
-    __algozTTL = _ttl;
-    __algozEnabled = _enabled;
+  function setAuthData(address _signer, uint _ttl, bool _enabled)
+  external arbiterOnly {
+    __authEnabled = _enabled;
+    __authSigner = _signer;
+    __authTokenTTL = _ttl;
   }
 }
