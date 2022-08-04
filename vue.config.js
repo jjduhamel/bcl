@@ -13,6 +13,12 @@ module.exports = {
     conf.module.rule('svg').clear();
   },
   configureWebpack: {
+    devServer: {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
+      }
+    },
     module: {
       rules: [{
         test: /assets\/icons\/.*\.svg$/,

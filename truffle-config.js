@@ -23,32 +23,22 @@ module.exports = {
       provider: () => new HDWalletProvider(mnemonic, 'wss://rinkeby.infura.io/ws/v3/2185ad08ea904e85b06c383c4cd6b902'),
       network_id: '4',
       gas: 5500000,
-      //gasPrice: 20000000000,  // 20 gwei (in wei) (default: 100 gwei)
-      confirmations: 2,    // # of confirmations to wait between deployments. (default: 0)
-      timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
+      gasPrice: 20000000000,  // 20 gwei (in wei) (default: 100 gwei)
+      confirmations: 2,
+      timeoutBlocks: 200,
       networkCheckTimeout: 60000,
       skipDryRun: true
     },
     goerli: {
       provider: () => new HDWalletProvider(mnemonic, `wss://goerli.infura.io/ws/v3/2185ad08ea904e85b06c383c4cd6b902`),
       network_id: '5',
-      gas: 4465030,
-      gasPrice: 20000000000,  // 20 gwei (in wei) (default: 100 gwei)
-      confirmations: 2,    // # of confirmations to wait between deployments. (default: 0)
-      timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
+      gas: 5500000,
+      gasPrice: 5000000000,  // 5 gwei (in wei) (default: 100 gwei)
+      confirmations: 2,
+      timeoutBlocks: 200,
       networkCheckTimeout: 60000,
       skipDryRun: true
     },
-    //
-    // An additional network, but with some advanced options…
-    // advanced: {
-    //   port: 8777,             // Custom port
-    //   network_id: 1342,       // Custom network
-    //   gas: 8500000,           // Gas sent with each transaction (default: ~6700000)
-    //   gasPrice: 20000000000,  // 20 gwei (in wei) (default: 100 gwei)
-    //   from: <address>,        // Account to send transactions from (default: accounts[0])
-    //   websocket: true         // Enable EventEmitter interface for web3 (default: false)
-    // },
     //
     // Useful for deploying to a public network.
     // Note: It's important to wrap the provider as a function to ensure truffle uses a new provider every time.
@@ -82,7 +72,8 @@ module.exports = {
       settings: {          // See the solidity docs for advice about optimization and evmVersion
        optimizer: {
          enabled: true,
-         runs: 200
+         //runs: 200
+         runs: 100
        },
        //evmVersion: "byzantium"
       }
