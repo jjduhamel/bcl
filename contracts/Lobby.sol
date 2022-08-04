@@ -6,7 +6,6 @@ import './ChessGame.sol';
 contract Lobby {
   bool private initialized;
   address public arbiter;
-  address public algozSigningAddress;
 
   event CreatedChallenge(address challenge
                        , address indexed player1
@@ -38,6 +37,11 @@ contract Lobby {
   mapping(address => ChallengeMetadata) internal challenges;
   mapping(address => GameMetadata) internal games;
 
+  // Algoz things
+  bool public __algozEnabled;
+  address public __algozSigner;
+  uint public __algozTTL;
+
   modifier isCurrentChallenge {
     require(challenges[msg.sender].exists, 'ChallengeContractOnly');
     _;
@@ -55,8 +59,8 @@ contract Lobby {
 
   function initialize(address _arbiter) public {
     require(!initialized, 'Contract was already initialized');
-    initialized = true;
     arbiter = _arbiter;
+    initialized = true;
   }
 
   function challenge(
@@ -134,7 +138,9 @@ contract Lobby {
     arbiter = _arbiter;
   }
 
-  function setAlgozAddr(address _algoz) external arbiterOnly {
-    algozSigningAddress = _algoz;
+  function initAlgoz(address _algoz, uint _ttl, bool _enabled) external arbiterOnly {
+    __algozSigner = _algoz;
+    __algozTTL = _ttl;
+    __algozEnabled = _enabled;
   }
 }

@@ -139,7 +139,7 @@ contract ChessGame {
 
   // TODO Remove the previous move checks in bitboard implementation
   function move(string memory san, bytes1 flags)
-  public inProgress currentPlayer timerActive {
+  public virtual inProgress currentPlayer timerActive {
     if (msg.sender == whitePlayer) {
       require(!StringUtils.equal(san, prevWhiteMove), 'IllegalMove');
       prevWhiteMove = san;

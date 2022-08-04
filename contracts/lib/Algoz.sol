@@ -6,18 +6,15 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 contract Algoz {
     using ECDSA for bytes32;
     using ECDSA for bytes;
-
-    //mapping(bytes32 => bool) public consumed_token;
-    bool private __algoz_initialized;
     bool public __algoz_enabled;
     address public __algoz_signer;
     uint public __algoz_ttl;
     uint public __algoz_prev_token;
+    bool internal __algoz_initialized;
 
-    function init_algoz(address _signer, uint _ttl)
-    public {
-        if (__algoz_initialized == true) return;
-        __algoz_enabled = true;
+    function init_algoz(address _signer, uint _ttl, bool _enabled) public {
+        require(!__algoz_initialized);
+        __algoz_enabled = _enabled;
         __algoz_signer = _signer;
         __algoz_ttl = _ttl;
         __algoz_prev_token = block.number-1;
@@ -28,7 +25,8 @@ contract Algoz {
                           , bytes32 auth_token
                           , bytes calldata signature_token)
     public {
-        if(!__algoz_enabled) return;
+        require(__algoz_initialized);
+        if (!__algoz_enabled) return;
         uint256 signed_block_no = uint256(expiry_token);
 
         // require a higher block number to prevent replay attacks

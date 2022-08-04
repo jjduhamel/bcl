@@ -5,14 +5,14 @@ import './ChessGame.sol';
 import './lib/Algoz.sol';
 
 contract ChessGameAlgoz is ChessGame, Algoz {
-  // FIXME Should check this is being created by the Lobby contract
   constructor(address white
             , address black
             , uint movetime)
   ChessGame(white, black, movetime) {
-    // For now just use 10 blocks for expiry
-    address algozSigner = Lobby(lobby).algozSigningAddress();
-    init_algoz(algozSigner, 10);
+    bool _enabled = Lobby(lobby).__algozEnabled();
+    address _signer = Lobby(lobby).__algozSigner();
+    uint _ttl = Lobby(lobby).__algozTTL();
+    init_algoz(_signer, _ttl, _enabled);
   }
 
   function move(string memory san
@@ -25,18 +25,22 @@ contract ChessGameAlgoz is ChessGame, Algoz {
     super.move(san, flags);
   }
 
+  function move(string memory san, bytes1 flags)
+  public view override inProgress currentPlayer timerActive {
+    revert('MethodDisabledError');
+  }
+
   function setAlgozSigner(address algoz_signer) external arbiterOnly {
     __algoz_signer = algoz_signer;
-    // TODO include signer address in comment
-    emit ArbiterAction(msg.sender, 'Set Algoz signer');
+    emit ArbiterAction(msg.sender, 'SetAlgozSigner');
   }
 
   function setAlgozEnabled(bool algoz_enabled) external arbiterOnly {
     __algoz_enabled = algoz_enabled;
     if (algoz_enabled) {
-      emit ArbiterAction(msg.sender, 'Enabled Algoz');
+      emit ArbiterAction(msg.sender, 'EnabledAlgoz');
     } else {
-      emit ArbiterAction(msg.sender, 'Dispabled Algoz');
+      emit ArbiterAction(msg.sender, 'DisabledAlgoz');
     }
   }
 }
