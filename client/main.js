@@ -6,20 +6,19 @@ import { VueReCaptcha } from 'vue-recaptcha-v3';
 import App from './App.vue';
 import LobbyPage from './pages/UserLobby';
 import ProfilePage from './pages/PlayerProfile';
-//import UserProfile from './pages/UserProfile';
 import PendingChallenge from './pages/PendingChallenge';
 import ChessGame from './pages/ChessGame';
 import AboutPage from './pages/AboutPage';
 import PlayAiPage from './pages/PlayComputer';
+import NftMarketplace from './pages/NftMarketplace';
 import UnderConstruction from './components/UnderConstruction';
 
 Vue.use(VueRouter);
 Vue.use(VueCompositionAPI);
-Vue.use(VueReCaptcha, { siteKey: '6LcNGzshAAAAAEIcw28um3FqfCHlq5VsjEMpsEUF' });
+Vue.use(VueReCaptcha, { siteKey: process.env.VUE_APP_RECAPTCHA_API_KEY });
 Vue.use(PiniaVuePlugin);
 const pinia = createPinia();
 
-/* eslint-disable no-new */
 window.vm = new Vue({
   el: '#app',
   router: new VueRouter({
@@ -31,7 +30,7 @@ window.vm = new Vue({
       { path: '/challenge/:contract', component: PendingChallenge },
       { path: '/game/:contract', component: ChessGame },
       { path: '/about', component: AboutPage },
-      { path: '/market', component: UnderConstruction },
+      { path: '/market', component: NftMarketplace },
       { path: '/settings', component: UnderConstruction },
     ]
   }),
