@@ -24,61 +24,37 @@ export default {
   },
   methods: {
     async modify() {
-      console.log('Modify challenge', this.balanceDiff);
+      console.log('Modify challenge');
+      const { lobby } = this.contracts;
       await this.challenge.modify(this.p1IsWhite
+                                , this.wagerAmount
                                 , this.timePerMove
                                 , { value: `${this.balanceDiff}` });
       this.waiting = true;
-      // Listen for a new challenge and redirect
-      const eventFilter = this.challenge.filters.ChallengeModified(this.wallet.address);
+      const eventFilter = lobby.filters.ModifiedChallenge(this.challenge.address, this.address);
       this.challenge.once(eventFilter, async player => {
         console.log('Modified challenge', this.challenge.address);
-        await this.refreshChallenge();
         this.waiting = false;
       });
     },
-    async handleChallengeAccepted() {
-      console.log('Listen for AcceptedChallenge event');
-      const { lobby } = this.contracts;
-      const eventFilter = lobby.filters.AcceptedChallenge(this.challenge.address);
-      lobby.once(eventFilter, (addr, p1, p2) => {
-        console.log('Challenge Accepted', addr);
-        this.lobby.terminate(addr);
-        this.challenge.game().then(g => {
-          console.log('New game created', g);
-          this.lobby.newGame(g);
-          this.$router.push('/game/'+g);
-        });
-      });
-      // TODO Polling
-    },
-    async handleChallengeDeclined() {
-      console.log('Listen for CanceledChallenge event');
-      const { lobby } = this.contracts;
-      const eventFilter = lobby.filters.CanceledChallenge(this.challenge.address);
-      lobby.once(eventFilter, (addr, p1, p2) => {
-        console.log('Challenge Terminated', addr);
-        this.lobby.terminate(addr);
-      });
-      // TODO Polling
-    },
     async accept() {
-      console.log('Accepted challenge');
+      console.log('Accept challenge');
+      const { lobby } = this.contracts;
       await this.challenge.accept({ value: `${this.balanceDiff}` });
       this.waiting = true;
-      const { lobby } = this.contracts;
-      const eventFilter = lobby.filters.GameStarted(null, this.address, this.opponent);
+      const eventFilter = lobby.filters.AcceptedChallenge(this.challenge.address, this.address);
       lobby.once(eventFilter, (addr, p1, p2) => {
         console.log('New game created', addr);
         this.waiting = false;
+        this.refreshChallenge();
       });
     },
     async decline() {
-      console.log('Declined challenge');
+      console.log('Decline challenge');
+      const { lobby } = this.contracts;
       await this.challenge.decline();
       this.waiting = true;
-      const { lobby } = this.contracts;
-      const eventFilter = lobby.filters.CanceledChallenge(this.challenge.address);
+      const eventFilter = lobby.filters.CanceledChallenge(this.challenge.address, this.address);
       lobby.once(eventFilter, (addr, p1, state) => {
         console.log('Challenge declined', addr);
         this.waiting = false;
@@ -86,24 +62,66 @@ export default {
       });
     },
     async cancel() {
-      console.log('Canceled challenge');
+      console.log('Cancel challenge');
       await this.challenge.cancel();
       this.waiting = true;
       const { lobby } = this.contracts;
-      const eventFilter = lobby.filters.CanceledChallenge(this.challenge.address);
+      const eventFilter = lobby.filters.CanceledChallenge(this.challenge.address, this.address);
       lobby.once(eventFilter, (addr, p1, state) => {
         console.log('Challenge cancelled', addr);
         this.waiting = false;
         this.refreshChallenge();
       });
-    }
+    },
+    async listenForAccepted() {
+      const { lobby } = this.contracts;
+      let latestEvent = await this.provider.getBlockNumber();
+      const eventFilter = lobby.filters.AcceptedChallenge(this.challenge.address);
+      const queryEvents = async () => {
+        const [ ev ] = await lobby.queryFilter(eventFilter, latestEvent+1);
+        if (!ev) return;
+        latestEvent = ev.blockNumber;
+        const [ challenge, sender, receiver ] = ev.args;
+        // Play a sound
+        const game = await this.challenge.game();
+        this.$router.push('/game/'+game);
+      };
+      this.acceptedEventTimer = setInterval(queryEvents, 1000);
+    },
+    async listenForDeclined() {
+      const { lobby } = this.contracts;
+      let latestEvent = await this.provider.getBlockNumber();
+      const eventFilter = lobby.filters.CanceledChallenge(this.challenge.address);
+      const queryEvents = async () => {
+        const [ ev ] = await lobby.queryFilter(eventFilter, latestEvent+1);
+        if (!ev) return;
+        latestEvent = ev.blockNumber;
+        // Play sound
+        this.refreshChallenge();
+      };
+      this.declinedEventTimer = setInterval(queryEvents, 1000);
+    },
+    async listenForModified() {
+      const { lobby } = this.contracts;
+      let latestEvent = await this.provider.getBlockNumber();
+      const eventFilter = lobby.filters.ModifiedChallenge(this.challenge.address);
+      const queryEvents = async () => {
+        const [ ev ] = await lobby.queryFilter(eventFilter, latestEvent+1);
+        if (!ev) return;
+        latestEvent = ev.blockNumber;
+        // Play sound
+        this.refreshChallenge();
+      };
+      this.modifiedEventTimer = setInterval(queryEvents, 1000);
+    },
   },
   created() {
     const { contract } = this.$route.params;
     this.initChallenge(contract).then(() => {
       if (this.isPending) {
-        this.handleChallengeAccepted();
-        this.handleChallengeDeclined();
+        this.listenForAccepted();
+        this.listenForDeclined();
+        this.listenForModified();
       }
     });
   }

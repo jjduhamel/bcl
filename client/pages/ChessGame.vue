@@ -189,9 +189,9 @@ export default {
         @onMove='chooseMove'
       />
 
-      <div id='game-sidebar' class='flex-down'>
+      <div id='game-sidebar' class='flex flex-down'>
         <div id='game-info' class='flex-shrink bordered padded container margin-rl text-center'>
-          <div id='contract-state' class='text-center text-ml'>
+          <div id='game-status' class='text-center text-ml'>
             <div v-if='isWinner' class='text-sentance'>You Won!</div>
             <div v-else-if='isLoser' class='text-sentance'>You Lost</div>
             <div v-else-if='inProgress' class='text-sentance'>In Progress</div>
@@ -199,27 +199,28 @@ export default {
           </div>
 
           <div class='text-ms margin-tb'>
-            <div id='current-move'>
+            <div id='action-indicator' class='flex flex-center align-center'>
               <div v-if='gameOver' class='text-sentance'>Game Over</div>
-              <div v-else-if='waiting && didChooseMove' class='text-sentance'>Pending...</div>
+              <div v-else-if='waiting && didChooseMove' id='pending-tx' class='text-sentance' />
               <div v-else-if='didChooseMove' class='text-sentance'>Submit Move</div>
               <div v-else-if='isCurrentMove' class='text-sentance'>Your Move</div>
               <div v-else-if='isOpponentsMove' class='text-sentance'>Opponent's Move</div>
               <div v-else class='text-sentance'>Spectating</div>
             </div>
+
             <div id='opponent'>
               {{ truncAddress(opponent) }}
             </div>
           </div>
 
-          <div id='time-per-move'>
+          <div id='timer'>
             <div v-if='!timerExpired'>{{ displayTimer }}</div>
             <div v-else>Time Expired</div>
           </div>
         </div>
 
-        <div v-if='isPlayer' class='flex-1 flex-down flex-center justify-end margin-lg'>
-          <div id='control-bar' class='flex-between margin'>
+        <div id='controls' v-if='isPlayer' class='flex-1 flex-down flex-center justify-end margin-lg'>
+          <div id='icon-bar' class='flex-between margin'>
             <button
               :disabled='!didChooseMove'
               @click='() => { undoMove(); didChooseMove=false }'
@@ -248,7 +249,7 @@ export default {
           <button
             class='margin-tb'
             @click='resign'
-            :disabled='disableControls'
+            :disabled='disableControls || isWinner'
           >Resign</button>
         </div>
       </div>
@@ -310,28 +311,35 @@ export default {
 </template>
 
 <style lang='scss'>
+@import '~spinthatshit/src/loaders';
+
 #chess-game {
   #game-sidebar {
     width: 12em;
-  }
 
-  #control-bar {
-    button {
-      margin: 0;
-      padding: 0;
-      border: none;
-      background-color: transparent;
-
-      svg {
-        width: 2em;
-        height: 2em;
-      }
+    #pending-tx {
+      @include loader11($color: black
+                      , $size: 6px
+                      , $gap: 6px
+                      , $duration: .6s);
     }
-  }
 
-  #game-controls {
-    button {
-      width: 6em;
+    #action-indicator {
+      height: 1.2em;
+    }
+
+    #icon-bar {
+      button {
+        margin: 0;
+        padding: 0;
+        border: none;
+        background-color: transparent;
+
+        svg {
+          width: 2em;
+          height: 2em;
+        }
+      }
     }
   }
 }

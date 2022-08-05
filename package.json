@@ -29,6 +29,7 @@
     "humanize-duration": "^3.27.2",
     "pinia": "^2.0.14",
     "sleep-promise": "^9.1.0",
+    "spinthatshit": "^1.0.4",
     "underscore": "^1.13.4",
     "vue": "^2.6.11",
     "vue-chessboard": "^0.6.6",

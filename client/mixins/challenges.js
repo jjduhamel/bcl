@@ -150,65 +150,6 @@ export default ({
 
       return this.lobby.updateChallenge(this.challenge.address);
     },
-    async listenForChallenges(cb) {
-      const { lobby } = this.contracts;
-      const eventFilter = lobby.filters.CreatedChallenge(null
-                                                       , null
-                                                       , this.wallet.address);
-      let latestBlock = await this.provider.getBlockNumber();
-      lobby.on(eventFilter, (addr, from, to, ev) => {
-        if (ev.blockNumber > latestBlock) {
-          console.log('Received challenge', addr);
-          latestBlock = ev.blockNumber;
-          this.lobby.newChallenge(addr);
-          if (cb) cb(addr, from, to);
-        }
-      });
-    },
-    async handleAcceptedChallenge(cb) {
-      const { lobby } = this.contracts;
-      const eventFilter = lobby.filters.AcceptedChallenge(null
-                                                        , null
-                                                        , this.wallet.address);
-      let latestBlock = await this.provider.getBlockNumber();
-      lobby.on(eventFilter, (addr, from, to, ev) => {
-        if (ev.blockNumber > latestBlock) {
-          console.log('Challenge accepted', addr);
-          latestBlock = ev.blockNumber;
-          if (cb) cb(addr, from, to);
-          const challenge = this.contracts.challenge(addr);
-          challenge.game().then(game => {
-            this.lobby.newGame(game);
-            this.lobby.terminate(addr);
-          });
-        }
-      });
-    },
-    async handleCanceledChallenge(cb) {
-      const { lobby } = this.contracts;
-      const eventFilter = lobby.filters.CanceledChallenge(null
-                                                        , null
-                                                        , this.wallet.address);
-      let latestBlock = await this.provider.getBlockNumber();
-      lobby.on(eventFilter, (addr, from, to, ev) => {
-        if (ev.blockNumber > latestBlock) {
-          console.log('Challenge cancelled', addr);
-          if (cb) cb(addr, from, to);
-          this.lobby.terminate(addr);
-        }
-      });
-    },
-    async refreshPlayerBalances() {
-      if (!this.player1 || !this.player2) {
-        console.error('Players are not initialized');
-        return;
-      }
-
-      [ this.p1Balance, this.p2Balance ] = await Promise.all([
-        this.fetchBalance(this.player1),
-        this.fetchBalance(this.player2)
-      ]);
-    },
     formatChallengeStatus(status) {
       for (var s of Object.keys(challengeStatus)) {
         if (status == challengeStatus[s]) {

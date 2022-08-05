@@ -14,6 +14,10 @@ import contractsMixin from './mixins/contracts';
 import challengeMixin from './mixins/challenges';
 
 import ConnectWallet from './components/ConnectWallet.vue';
+import Icon from 'bytesize-icons/dist/icons/alert.svg';
+import TagIcon from 'bytesize-icons/dist/icons/tag.svg';
+import MailIcon from 'bytesize-icons/dist/icons/mail.svg';
+import InfoIcon from 'bytesize-icons/dist/icons/info.svg';
 import AlertIcon from 'bytesize-icons/dist/icons/alert.svg';
 import GithubIcon from 'bytesize-icons/dist/icons/github.svg';
 import TwitterIcon from 'bytesize-icons/dist/icons/twitter.svg';
@@ -22,7 +26,7 @@ const { Web3Provider } = ethers.providers;
 
 export default {
   name: 'App',
-  components: { ConnectWallet, AlertIcon, GithubIcon, TwitterIcon },
+  components: { ConnectWallet, TagIcon, InfoIcon, MailIcon, AlertIcon, GithubIcon, TwitterIcon },
   mixins: [ ethMixin, walletMixin, contractsMixin, challengeMixin ],
   data () {
     return {
@@ -39,6 +43,10 @@ export default {
           return process.env.VUE_APP_RINKEBY_ADDR
         case 'goerli':
           return process.env.VUE_APP_GOERLI_ADDR
+        case 'matic':
+          return process.env.VUE_APP_MATIC_ADDR
+        case 'maticmum':
+          return process.env.VUE_APP_MUMBAI_ADDR
       }
     }
   },
@@ -83,17 +91,39 @@ export default {
       const challenges = await this.fetchPlayerData();
 
       // Global Event Listeners
-      this.listenForChallenges(() => this.playAudio('NewChallenge'));
-      this.handleAcceptedChallenge(() => this.playAudio('Notify'));
-      this.handleCanceledChallenge(() => this.playAudio('Explosion'));
-      this.listenForVictory(() => this.playAudio('Victory'));
-      this.listenForDefeat(() => this.playAudio('Defeat'));
+      this.listenForChallenges((addr, from, to) => {
+        if (this.address == to) this.playAudio('Notify');
+        this.lobby.newChallenge(addr);
+      });
+      this.listenForAccepted((addr, from, to) => {
+        if (this.address == to) this.playAudio('Notify');
+        this.lobby.terminate(addr);
+      });
+      this.listenForDeclined((addr, from, to) => {
+        if (this.address == to) this.playAudio('Explosion');
+        this.lobby.terminate(addr);
+      });
+      this.listenForGames(addr => {
+        this.playAudio('Notify')
+        this.lobby.newGame(addr);
+      });
+      this.listenForVictory(addr => {
+        this.playAudio('Victory')
+        this.lobby.terminate(addr);
+      });
+      this.listenForDefeat(addr => {
+        this.playAudio('Defeat')
+        this.lobby.terminate(addr);
+      });
+      this.listenForDispute(addr => {
+        //this.playAudio('Defeat')
+      });
     },
     async fetchPlayerData() {
       const { lobby } = this.contracts;
-
       const games = [];
-      const events = await this.queryPlayerEvents(lobby, lobby.filters.CreatedChallenge);
+      const eventFilter = lobby.filters.CreatedChallenge;
+      const events = await this.queryPlayerEvents(lobby, eventFilter, );
       const challenges = await Promise.all(_.map(events, async ev => {
         const [ addr, from, to ] = ev.args;
         const challenge = await this.lobby.newChallenge(addr);
@@ -111,6 +141,7 @@ export default {
       return challenges;
     },
     async connectWallet() {
+      console.log('Connect wallet');
       await this.provider.send('eth_requestAccounts', [])
                 .then(this.init);
     }
@@ -162,13 +193,49 @@ export default {
 
           <div id='navigation'>
             <ConnectWallet
+              class='flex align-center justify-center'
               :isInstalled='wallet.installed'
               :isConnected='wallet.connected'
               :onConnect='this.connectWallet'
               :onClick='() => this.$router.push("/lobby")'
-            >Lounge</ConnectWallet>
-            <router-link tag='button' to='/market'>Market</router-link>
-            <router-link tag='button' to='/about'>About</router-link>
+            >
+              <div class='flex-1 flex'>
+                <MailIcon class='pad-rl'
+                         viewBox='0 0 32 32'
+                         width='16' height='16'
+                />
+              </div>
+              <div class='flex-2 flex-center'>
+                Lounge
+              </div>
+              <div class='flex-1' />
+            </ConnectWallet>
+
+            <router-link tag='button' to='/market' class='flex align-center'>
+              <div class='flex-1 flex'>
+                <TagIcon class='pad-rl'
+                         viewBox='0 0 32 32'
+                         width='16' height='16'
+                />
+              </div>
+              <div class='flex-2 flex-center'>
+                Market
+              </div>
+              <div class='flex-1' />
+            </router-link>
+
+            <router-link tag='button' to='/about' class='flex align-center'>
+              <div class='flex-1 flex'>
+                <InfoIcon class='pad-rl'
+                         viewBox='0 0 32 32'
+                         width='16' height='16'
+                />
+              </div>
+              <div class='flex-2 flex-center'>
+                About
+              </div>
+              <div class='flex-1' />
+            </router-link>
           </div>
         </div>
       </div>
@@ -274,7 +341,7 @@ html, body {
 
         button {
           @extend .margin-tb;
-          @extend .margin-xl-rl;
+          @extend .margin-lg-rl;
         }
       }
     }

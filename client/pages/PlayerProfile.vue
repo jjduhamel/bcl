@@ -38,8 +38,8 @@ export default {
 
       const filter = lobby.filters.GameStarted;
       const [ white, black ] = await Promise.all([
-        lobby.queryFilter(filter(null, this.opponent, null)),
-        lobby.queryFilter(filter(null, null, this.opponent))
+        lobby.queryFilter(filter(null, this.opponent, null), this.originalBlock),
+        lobby.queryFilter(filter(null, null, this.opponent), this.originalBlock)
       ]);
       await Promise.all(_.map([ ...white, ...black ], ev => {
         const [ addr, p1, p2 ] = ev.args;
@@ -65,7 +65,6 @@ export default {
                                                        , this.opponent);
       lobby.once(eventFilter, async (addr, from, to) => {
         console.log('Issued challenge', addr);
-        await this.lobby.newChallenge(addr);
         this.waiting = false;
         this.$router.push('/challenge/'+addr);
       });

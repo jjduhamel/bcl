@@ -177,7 +177,8 @@ export default ({
         this.winner = await this.game.winner();
       }
 
-      const moves = await this.game.queryFilter(this.game.filters.MoveSAN);
+      // TODO Use the timestamp of the event for better results
+      const moves = await this.game.queryFilter(this.game.filters.MoveSAN, this.originalBlock);
       for (var ev of moves) {
         let [ player, san, flags ] = ev.args;
         this.tryMove(san);
