@@ -6,12 +6,13 @@ module.exports = async function(deployer, network, accounts) {
   let arbiter;
   if ([ 'development', 'test' ].includes(network)) {
     arbiter = accounts[0];
-  } else if (network == 'rinkeby') {
+  } else if ([ 'rinkeby', 'goerli', 'mumbai' ].includes(network)) {
     arbiter = '0x1C0c9C6D9f24048fBdF88865F8f967C3004e93EF';
-  } else if (network == 'goerli') {
+  } else if ([ 'homestead', 'matic' ].includes(network)) {
     arbiter = '0x1C0c9C6D9f24048fBdF88865F8f967C3004e93EF';
+    //arbiter = '0x1E354B468a3bADa71Adc9813b7b18b92992129F8';
   } else {
-    arbiter = '0x6D33531f7fe1059e64E1FC573C0Bc66C6d246E6c';
+    throw Error('Unsupported network: '+network);
   }
   const lobby = await deployProxy(Lobby, [ arbiter ], { deployer });
   console.log('Deployed Lobby at', lobby.address);

@@ -14,6 +14,12 @@ module.exports = async function(deployer, network) {
   } else if (network == 'homestead') {
     algoz = '0x89241d6686B37F191969b96aFCe6225B1A7838De';
     ttl = 5;
+  } else if (network == 'matic') {
+    algoz = '0xbaD2320334884faA59A72954e4BFD5e9B07cdd44';
+    ttl = 250;
+  } else if (network == 'maticmum') {
+    algoz = '0x1C97E3feAb223b3dB85Df88d20dad6B3e40a4A87';
+    ttl = 250;
   } else {
     throw Error('Unsupported network');
   }

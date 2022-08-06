@@ -42,6 +42,11 @@ contract Lobby {
   address public __authSigner;
   uint public __authTokenTTL;
 
+  // Admin Stuff
+  string public __version;
+  bool public __allowChallenges;
+  bool public __allowWagers;
+
   modifier isCurrentChallenge {
     require(challenges[msg.sender].exists, 'ChallengeContractOnly');
     _;
@@ -57,6 +62,16 @@ contract Lobby {
     _;
   }
 
+  modifier allowChallenge() {
+    require(__allowChallenges, 'ChallengingDisabled');
+    _;
+  }
+
+  modifier allowWager(uint _amount) {
+    if (_amount > 0) require(__allowWagers, 'WageringDisabled');
+    _;
+  }
+
   function initialize(address _arbiter) public {
     require(!initialized, 'Contract was already initialized');
     arbiter = _arbiter;
@@ -68,7 +83,7 @@ contract Lobby {
     bool _startAsWhite,
     uint _wagerAmount,
     uint _timePerMove
-  ) external payable {
+  ) external payable allowChallenge allowWager(_wagerAmount) {
     require(msg.value >= _wagerAmount, 'InvalidDepositAmount');
     require(_timePerMove >= 60, 'InvalidTimePerMove');
     Challenge _challenge = (new Challenge){ value: msg.value }(
@@ -133,14 +148,35 @@ contract Lobby {
   /*
    * Arbiter functions
    */
-  function setArbiter(address _arbiter) external arbiterOnly {
+  function setVersion(string memory _version)
+  external arbiterOnly returns (string memory) {
+    __version = _version;
+    return __version;
+  }
+
+  function setArbiter(address _arbiter)
+  external arbiterOnly returns (address) {
     arbiter = _arbiter;
+    return arbiter;
   }
 
   function setAuthData(address _signer, uint _ttl, bool _enabled)
-  external arbiterOnly {
+  external arbiterOnly returns (bool) {
     __authEnabled = _enabled;
     __authSigner = _signer;
     __authTokenTTL = _ttl;
+    return __authEnabled;
+  }
+
+  function allowChallenges(bool _allow)
+  external arbiterOnly returns (bool) {
+    __allowChallenges = _allow;
+    return __allowChallenges;
+  }
+
+  function allowWagers(bool _allow)
+  external arbiterOnly returns (bool) {
+    __allowWagers = _allow;
+    return __allowWagers;
   }
 }

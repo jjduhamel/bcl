@@ -21,7 +21,7 @@ module.exports = {
     },
     rinkeby: {
       provider: () => new HDWalletProvider(mnemonic, 'wss://rinkeby.infura.io/ws/v3/2185ad08ea904e85b06c383c4cd6b902'),
-      network_id: '4',
+      network_id: 4,
       gas: 5500000,
       gasPrice: 20000000000,  // 20 gwei (in wei) (default: 100 gwei)
       confirmations: 2,
@@ -30,10 +30,30 @@ module.exports = {
       skipDryRun: true
     },
     goerli: {
-      provider: () => new HDWalletProvider(mnemonic, `wss://goerli.infura.io/ws/v3/2185ad08ea904e85b06c383c4cd6b902`),
-      network_id: '5',
+      provider: () => new HDWalletProvider(mnemonic, 'wss://goerli.infura.io/ws/v3/2185ad08ea904e85b06c383c4cd6b902'),
+      network_id: 5,
       gas: 5500000,
       gasPrice: 5000000000,  // 5 gwei (in wei) (default: 100 gwei)
+      confirmations: 2,
+      timeoutBlocks: 200,
+      networkCheckTimeout: 60000,
+      skipDryRun: true
+    },
+    matic: {
+      provider: () => new HDWalletProvider(mnemonic, 'wss://polygon-mainnet.g.alchemy.com/v2/Sv3cls4E24PIJWx4lZG0k98dLAgTOeZF'),
+      network_id: 137,
+      gas: 5500000,
+      gasPrice: 36000000000,  // 5 gwei (in wei) (default: 100 gwei)
+      confirmations: 2,
+      timeoutBlocks: 200,
+      networkCheckTimeout: 60000,
+      skipDryRun: true
+    },
+    mumbai: {
+      provider: () => new HDWalletProvider(mnemonic, 'wss://polygon-mumbai.g.alchemy.com/v2/x6KKPW5ddPT9YSOm0kxSKnu_FsbmyDZ7'),
+      network_id: 80001,
+      //gas: 5500000,
+      //gasPrice: 5000000000,  // 5 gwei (in wei) (default: 100 gwei)
       confirmations: 2,
       timeoutBlocks: 200,
       networkCheckTimeout: 60000,
@@ -43,7 +63,7 @@ module.exports = {
     // Useful for deploying to a public network.
     // Note: It's important to wrap the provider as a function to ensure truffle uses a new provider every time.
     // ropsten: {
-    //   provider: () => new HDWalletProvider(mnemonic, `https://ropsten.infura.io/v3/YOUR-PROJECT-ID`),
+    //   provider: () => new HDWalletProvider(mnemonic, 'https://ropsten.infura.io/v3/YOUR-PROJECT-ID'),
     //   network_id: 3,       // Ropsten's id
     //   gas: 5500000,        // Ropsten has a lower block limit than mainnet
     //   confirmations: 2,    // # of confirmations to wait between deployments. (default: 0)
@@ -53,7 +73,7 @@ module.exports = {
     //
     // Useful for private networks
     // private: {
-    //   provider: () => new HDWalletProvider(mnemonic, `https://network.io`),
+    //   provider: () => new HDWalletProvider(mnemonic, 'https://network.io'),
     //   network_id: 2111,   // This network is yours, in the cloud.
     //   production: true    // Treats this network as if it was a public net. (default: false)
     // }
