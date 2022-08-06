@@ -123,7 +123,7 @@ export default {
       const { lobby } = this.contracts;
       const games = [];
       const eventFilter = lobby.filters.CreatedChallenge;
-      const events = await this.queryPlayerEvents(lobby, eventFilter, );
+      const events = await this.queryPlayerEvents(lobby, eventFilter, this.originalBlock);
       const challenges = await Promise.all(_.map(events, async ev => {
         const [ addr, from, to ] = ev.args;
         const challenge = await this.lobby.newChallenge(addr);
@@ -185,7 +185,7 @@ export default {
                 <div class='margin-sm-rl'>
                   {{ formatBalance(balance) }}
                 </div>
-                <div class='flex-shrink'>ETH</div>
+                <div class='flex-shrink'>{{ nativeToken }}</div>
               </div>
               <div v-else class='flex-1 flex-end'>---</div>
             </div>

@@ -10,7 +10,7 @@ export default {
     title: String,
     startAsWhite: Boolean,
     wagerAmount: [ Number, String ],
-    //wagerToken: String,
+    wagerToken: String,
     timePerMove: [ Number, String ],
     timeUnits: String
   },
@@ -46,7 +46,7 @@ export default {
                placeholder='0.000' />
 
         <select name='wager-token' class='flex-1'>
-          <option value='eth'>ETH</option>
+          <option value='eth'>{{ wagerToken }}</option>
           <option value='dai' disabled>DAI</option>
           <option value='usdc' disabled>USDT</option>
           <option value='usdc' disabled>USDC</option>

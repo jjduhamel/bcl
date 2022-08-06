@@ -4,14 +4,13 @@ import ethMixin from '../mixins/ethereum';
 import walletMixin from '../mixins/wallet';
 import contractsMixin from '../mixins/contracts';
 import challengeMixin from '../mixins/challenges';
-import useWalletStore from '../stores/wallet';
 import ChallengeModal from '../components/ChallengeModal';
 import GameCard from '../components/GameCard';
 
 export default {
   name: 'PlayerProfile',
   components: { ChallengeModal, GameCard },
-  mixins: [ ethMixin, contractsMixin, challengeMixin ],
+  mixins: [ ethMixin, walletMixin, contractsMixin, challengeMixin ],
   data() {
     return {
       loading: false,
@@ -153,6 +152,7 @@ export default {
       @update:color='val => startAsWhite = val'
       v-bind:wagerAmount='displayWager'
       @update:wager='val => displayWager = val'
+      :wagerToken='nativeToken'
       v-bind:timePerMove='displayTPM'
       @update:tpm='val => displayTPM = val'
       v-bind:timeUnits='timeUnits'

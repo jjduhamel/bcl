@@ -142,7 +142,7 @@ export default {
         </div>
         <div v-if='playerHandle'>{{ playerHandle }}</div>
         <div v-else>{{ truncAddress(wallet.address) }}</div>
-        <div>{{ formatBalance(playerBalance) }} ETH</div>
+        <div>{{ formatBalance(playerBalance) }} {{ nativeToken }}</div>
       </div>
 
       <div id='opponent' class='bordered padded container text-center'>
@@ -153,7 +153,7 @@ export default {
         </div>
         <div v-if='opponentHandle'>{{ opponentHandle }}</div>
         <div v-else>{{ truncAddress(opponent) }}</div>
-        <div>{{ formatBalance(opponentBalance) }} ETH</div>
+        <div>{{ formatBalance(opponentBalance) }} {{ nativeToken }}</div>
       </div>
     </div>
 
@@ -175,28 +175,28 @@ export default {
       <div class='flex margin-tb'>
         <div class='flex-shrink center-align text-ml text-bold'>Wager Amount</div>
         <div class='flex-1 flex-end center-align'>
-          {{ formatBalance(wagerAmount) }} ETH
+          {{ formatBalance(wagerAmount) }} {{ nativeToken }}
         </div>
       </div>
 
       <div class='flex margin-tb'>
         <div class='flex-shrink center-align'>Current Balance</div>
         <div class='flex-1 flex-end center-align text-ms'>
-          {{ formatBalance(playerBalance) }} ETH
+          {{ formatBalance(playerBalance) }} {{ nativeToken }}
         </div>
       </div>
 
       <div v-if='extraBalance>0' class='flex margin-tb'>
-        <div class='flex-shrink center-align'>Extra Balance</div>
+        <div class='flex-shrink center-align'>Surplus Balance</div>
         <div class='flex-1 flex-end center-align text-ms'>
-          +{{ formatBalance(extraBalance) }} ETH
+          +{{ formatBalance(extraBalance) }} {{ nativeToken }}
         </div>
       </div>
 
       <div v-if='currentBalance>0 && balanceDiff>0' class='flex margin-tb'>
-        <div class='flex-shrink center-align'>Needed Balance</div>
+        <div class='flex-shrink center-align'>Balance Deficit</div>
         <div class='flex-1 flex-end center-align text-ms'>
-          +{{ formatBalance(balanceDiff) }} ETH
+          -{{ formatBalance(balanceDiff) }} {{ nativeToken }}
         </div>
       </div>
     </div>
@@ -244,6 +244,7 @@ export default {
       @update:color='val => startAsWhite = val'
       v-bind:wagerAmount='displayWager'
       @update:wager='val => displayWager = val'
+      :wagerToken='nativeToken'
       v-bind:timePerMove='displayTPM'
       @update:tpm='val => displayTPM = val'
       v-bind:timeUnits='timeUnits'

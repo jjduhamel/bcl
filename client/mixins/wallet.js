@@ -10,9 +10,17 @@ export default ({
     signer() { return this.wallet.signer },
     isInstalled() { return this.wallet.installed },
     isConnected() { return this.wallet.connected },
-    // Rename to walletAddress.  Address is to generic.
     address() { return this.wallet.address },
-    // Rename to nativeBalance
-    balance() { return this.wallet.balance }
+    network() { return this.wallet.network },
+    balance() { return this.wallet.balance },
+    nativeToken() {
+      switch (this.network) {
+        case 'matic':
+        case 'maticmum':
+          return 'MATIC';
+        default:
+          return 'ETH';
+      }
+    }
   }
 });

@@ -50,7 +50,7 @@ export default ({
         case 'homestead':
           return 0;
         case 'matic':
-          return 0;
+          return 31557572;
         case 'maticmum':
           // 0x53c8bede9a31881d52680efd1898db752f0e21210281d5ab04fa403d8019edbf
           return 27484933;
@@ -106,8 +106,8 @@ export default ({
       const eventFilter = lobby.filters.AcceptedChallenge;
       const queryEvents = async () => {
         //console.log('query accepted');
-        if (!events || events.length == 0) return;
         const events = await this.queryPlayerEvents(lobby, eventFilter, latestEvent+1);
+        if (!events || events.length == 0) return;
         for (var ev of events) {
           latestEvent = ev.blockNumber;
           const [ challenge, sender, receiver ] = ev.args;
@@ -123,6 +123,7 @@ export default ({
       const queryEvents = async () => {
         //console.log('query declined');
         const events = await this.queryPlayerEvents(lobby, eventFilter, latestEvent+1);
+        if (!events || events.length == 0) return;
         for (var ev of events) {
           latestEvent = ev.blockNumber;
           const [ challenge, sender, receiver ] = ev.args;
@@ -153,8 +154,9 @@ export default ({
       const eventFilter = lobby.filters.GameFinished(null, this.address);
       const queryEvents = async () => {
         //console.log('query victory');
-        const games = await lobby.queryFilter(eventFilter, latestEvent+1);
-        for (var ev of games) {
+        const events = await lobby.queryFilter(eventFilter, latestEvent+1);
+        if (!events || events.length == 0) return;
+        for (var ev of events) {
           latestEvent = ev.blockNumber;
           const [ game, winner, loser ] = ev.args;
           cb(game, winner, loser);
@@ -168,8 +170,9 @@ export default ({
       const eventFilter = lobby.filters.GameFinished(null, null, this.address);
       const queryEvents = async () => {
         //console.log('query defeat');
-        const games = await lobby.queryFilter(eventFilter, latestEvent+1);
-        for (var ev of games) {
+        const events = await lobby.queryFilter(eventFilter, latestEvent+1);
+        if (!events || events.length == 0) return;
+        for (var ev of events) {
           const [ game, winner, loser ] = ev.args;
           latestEvent = ev.blockNumber;
           cb(game, winner, loser);
@@ -183,7 +186,8 @@ export default ({
       const eventFilter = lobby.filters.GameDisputed(null, null, this.address);
       const queryEvents = async () => {
         //console.log('query dispute');
-        const games = await lobby.queryFilter(eventFilter, latestEvent+1);
+        const events = await lobby.queryFilter(eventFilter, latestEvent+1);
+        if (!events || events.length == 0) return;
         for (var ev of games) {
           const [ game, winner, loser ] = ev.args;
           latestEvent = ev.blockNumber;

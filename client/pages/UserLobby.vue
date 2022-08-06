@@ -108,7 +108,7 @@ export default {
         <input
           type='text'
           v-model='query'
-          placeholder='ETH Address / ENS Domain'
+          placeholder='ETH Address/ENS Domain'
         />
         <button
           class='margin-rl'
