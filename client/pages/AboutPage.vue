@@ -1,12 +1,23 @@
-<template>
-  <div id='rules'>
-    <div class='text-xl margin-tb'>Rules</div>
+<script>
+import WelcomeMessage from '../components/WelcomeMessage';
 
+export default {
+  components: { WelcomeMessage }
+}
+</script>
+
+<template>
+  <div id='about'>
+    <div class='text-xl margin-tb'>The Blockchain Chess Lounge</div>
+
+    <WelcomeMessage class='pad' />
+
+    <div class='text-ml margin-tb'>Rules</div>
     <div class='summary'>
     The standard rules of chess apply in this game with a small number of exceptions.
     </div>
 
-    <ol id='rules'>
+    <ol id='rules' class='text-ms'>
       <li>
       The game is considered finished when one king is captured.  Alternatively, one player may resign, or both players may agree to a stalemate.
       </li>
@@ -25,8 +36,8 @@
 </template>
 
 <style lang='scss'>
-#rules {
-  width: 32em;
+#about {
+  max-width: 36em;
 
   #rules {
     padding-left: 1em;

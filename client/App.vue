@@ -1,18 +1,14 @@
 <script>
 import _ from 'underscore';
 import { ethers, Contract } from 'ethers';
-import { isAddress } from 'ethers/lib/utils';
-
-import { challengeStatus, gameStatus } from './constants/bcl';
-
 import LobbyContract from './contracts/Lobby';
 import ChallengeContract from './contracts/Challenge';
-
+import { challengeStatus, gameStatus } from './constants/bcl';
 import ethMixin from './mixins/ethereum';
 import walletMixin from './mixins/wallet';
 import contractsMixin from './mixins/contracts';
 import challengeMixin from './mixins/challenges';
-
+import PlayComputer from './pages/PlayComputer.vue';
 import ConnectWallet from './components/ConnectWallet.vue';
 import Icon from 'bytesize-icons/dist/icons/alert.svg';
 import TagIcon from 'bytesize-icons/dist/icons/tag.svg';
@@ -21,65 +17,38 @@ import InfoIcon from 'bytesize-icons/dist/icons/info.svg';
 import AlertIcon from 'bytesize-icons/dist/icons/alert.svg';
 import GithubIcon from 'bytesize-icons/dist/icons/github.svg';
 import TwitterIcon from 'bytesize-icons/dist/icons/twitter.svg';
-
 const { Web3Provider } = ethers.providers;
 
 export default {
   name: 'App',
-  components: { ConnectWallet, TagIcon, InfoIcon, MailIcon, AlertIcon, GithubIcon, TwitterIcon },
+  components: { ConnectWallet, PlayComputer, TagIcon, InfoIcon, MailIcon, AlertIcon, GithubIcon, TwitterIcon },
   mixins: [ ethMixin, walletMixin, contractsMixin, challengeMixin ],
   data () {
     return {
       loading: false
     }
   },
-  computed: {
-    lobbyAddress() {
-      switch (this.wallet.network) {
-        case 'development':
-        case 'unknown':
-          return process.env.VUE_APP_LOCAL_ADDR
-        case 'rinkeby':
-          return process.env.VUE_APP_RINKEBY_ADDR
-        case 'goerli':
-          return process.env.VUE_APP_GOERLI_ADDR
-        case 'matic':
-          return process.env.VUE_APP_MATIC_ADDR
-        case 'maticmum':
-          return process.env.VUE_APP_MUMBAI_ADDR
-      }
-    }
+  watch: {
+    isConnected(conn) { if (conn) this.init() }
   },
   methods: {
     async init() {
-      // Check whether a wallet is installed
-      if (typeof window.ethereum === 'undefined') {
-        console.error('Metamask is NOT installed!');
-        this.wallet.installed = false;
-        return;
-      }
-      console.log('Metamask is installed!');
-      this.wallet.installed = true;
-      this.wallet.provider = new Web3Provider(window.ethereum);
-      const accounts = await this.provider.listAccounts();
-      if (accounts.length == 0) {
-        console.log('Wallet is NOT connected');
-        return;
-      }
-      this.wallet.signer = this.provider.getSigner();
-      [ this.wallet.address
-      , this.wallet.network
-      , this.wallet.balance ] = await Promise.all([
-          this.signer.getAddress()
-        , this.provider.getNetwork().then(n => n.name)
-        , this.signer.getBalance().then(BigInt)
-      ]);
-      this.wallet.connected = true;
+      if (!this.wallet.connected) await this.initMetamask();
+      if (!this.wallet.connected) await this.initWalletConnect();
+      if (!this.wallet.connected) return;
+
       console.log('Connected!');
-      console.log('Address', this.wallet.address);
-      console.log('Balance', this.formatBalance(this.wallet.balance));
-      console.log('Network', this.wallet.network);
+      console.log('Address', this.address);
+      console.log('Balance', this.formatBalance(this.balance));
+      console.log('Network', this.network);
       console.log('Contract', this.lobbyAddress);
+
+      this.$amplitude.setUserId(this.address);
+      const aev = this.$amplitude.logEvent('MetamaskConnected', {
+        network: this.network,
+        address: this.address,
+        lobby: this.lobbyAddress,
+      });
 
       // Try to initialize with the signer, else use provider
       // NOTE Would be better to only connect wallet if the
@@ -142,6 +111,7 @@ export default {
     },
     async connectWallet() {
       console.log('Connect wallet');
+      this.$amplitude.logEvent('ConnectMetamask');
       await this.provider.send('eth_requestAccounts', [])
                 .then(this.init);
     }
@@ -175,7 +145,7 @@ export default {
             <div class='flex pad-sm align-bottom border-bottom border-sm'>
               <div class='flex-shrink'>Account</div>
               <div class='flex-1 flex-end text-ms'>
-                {{ isConnected ? truncAddress(address) : '---' }}
+                {{ isConnected ? truncAddress(wallet.address) : '---' }}
               </div>
             </div>
 
@@ -192,13 +162,7 @@ export default {
           </div>
 
           <div id='navigation'>
-            <ConnectWallet
-              class='flex align-center justify-center'
-              :isInstalled='wallet.installed'
-              :isConnected='wallet.connected'
-              :onConnect='this.connectWallet'
-              :onClick='() => this.$router.push("/lobby")'
-            >
+            <router-link tag='button' to='/lobby' class='flex align-center' :disabled='!wallet.connected'>
               <div class='flex-1 flex'>
                 <MailIcon class='pad-rl'
                          viewBox='0 0 32 32'
@@ -209,9 +173,9 @@ export default {
                 Lounge
               </div>
               <div class='flex-1' />
-            </ConnectWallet>
+            </router-link>
 
-            <router-link tag='button' to='/market' class='flex align-center'>
+            <router-link tag='button' to='/market' class='flex align-center' :disabled='!wallet.connected'>
               <div class='flex-1 flex'>
                 <TagIcon class='pad-rl'
                          viewBox='0 0 32 32'
@@ -224,7 +188,7 @@ export default {
               <div class='flex-1' />
             </router-link>
 
-            <router-link tag='button' to='/about' class='flex align-center'>
+            <router-link tag='button' to='/about' class='flex align-center' :disabled='!wallet.connected'>
               <div class='flex-1 flex'>
                 <InfoIcon class='pad-rl'
                          viewBox='0 0 32 32'
@@ -240,15 +204,16 @@ export default {
         </div>
       </div>
 
-      <div id='page' class='flex'>
+      <div v-if='!loading' id='page' class='flex'>
         <router-view v-if='wallet.connected' class='flex-1' />
+        <PlayComputer v-else class='flex-1' />
       </div>
     </div>
 
     <div id='footer'>
       <div class='flex flex-grow'>
         <div class='text-sm margin-sm'>
-          This site is protected from bots by <a href='https://algoz.xyz/'>Algoz</a>
+          This site is protected from bots by <a href='https://algoz.xyz/'>algoz.xyz</a>
         </div>
       </div>
       <a href='https://twitter.com/TheChessLounge'>

@@ -25,14 +25,16 @@ export default ({
         case 'development':
         case 'unknown':
           return process.env.VUE_APP_LOCAL_ADDR
+        case 'homestead':
+          return process.env.VUE_APP_HOMESTEAD_ADDR
         case 'rinkeby':
           return process.env.VUE_APP_RINKEBY_ADDR
         case 'goerli':
           return process.env.VUE_APP_GOERLI_ADDR
-        /* TODO
-        case 'homestead':
-          return process.env.VUE_APP_HOMESTEAD_ADDR
-        */
+        case 'matic':
+          return process.env.VUE_APP_MATIC_ADDR
+        case 'mumbai':
+          return process.env.VUE_APP_MUMBAI_ADDR
       }
     },
     originalBlock() {
@@ -48,9 +50,11 @@ export default ({
           // 0x5ad7149e6c3ca6f32feb77928fe765ff3aaaed7eb04ef04d2cfa036dac537463
           return 7311314;
         case 'homestead':
-          return 0;
+          // 0xb0f434f4babc4a1195a589092644ae685e89bcfcf220231597764f3eb762e2f3
+          return 15287820;
         case 'matic':
-          return 31557572;
+          return 31589278;
+          //return 31557572;
         case 'maticmum':
           // 0x53c8bede9a31881d52680efd1898db752f0e21210281d5ab04fa403d8019edbf
           return 27484933;

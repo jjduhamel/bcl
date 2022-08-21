@@ -1,48 +1,44 @@
 <script>
-import { chessboard }  from 'vue-chessboard';
+import ChessBoard  from './ChessBoard';
+import { Chess } from 'chess.js';
 
 export default {
   name: 'AiBoard',
-  extends: chessboard,
+  extends: ChessBoard,
+  data() {
+    return {
+      engine: null
+    }
+  },
   methods: {
     undo() {
       this.game.undo();
       this.board.set({ fen: this.game.fen() });
     },
-    userPlay() {
-      return (orig, dest) => {
-        if (this.isPromotion(orig, dest)) {
-          this.promoteTo = this.onPromotion();
-        }
-        this.game.move({from: orig, to: dest, promotion: this.promoteTo});
-        this.board.set({
-          fen: this.game.fen()
-        });
-        this.calculatePromotions();
-        this.afterMove();
-        setTimeout(this.aiNextMove, 1000);
-      };
+    chooseMove(from, to) {
+      const move = this.engine.move({ from, to });
+      this.board.set({
+        fen: this.engine.fen(),
+      });
+      setTimeout(this.aiNextMove, 500);
     },
     aiNextMove() {
-      let moves = this.game.moves({verbose: true});
+      let moves = this.engine.moves({ verbose: true });
       let randomMove = moves[Math.floor(Math.random() * moves.length)];
-      this.game.move(randomMove);
+      this.engine.move(randomMove);
 
       this.board.set({
-        fen: this.game.fen(),
-        turnColor: this.toColor(),
-        movable: {
-          color: this.toColor(),
-          dests: this.possibleMoves(),
-          events: { after: this.userPlay()},
-        }
+        fen: this.engine.fen(),
       });
-      this.afterMove();
     },
   },
   mounted() {
+    this.engine = new Chess();
     this.board.set({
-      movable: { events: { after: this.userPlay()} },
+      movable: {
+        fen: this.engine.fen(),
+        events: { after: this.chooseMove }
+      },
     });
   }
 }

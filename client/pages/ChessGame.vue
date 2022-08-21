@@ -17,6 +17,8 @@ export default {
   mixins: [ walletMixin, contractsMixin, gameMixin ],
   data() {
     return {
+      authenticating: false,
+      pending: false,
       waiting: false,
       didChooseMove: false,
       proposedMove: null,
@@ -82,17 +84,19 @@ export default {
       console.log('Choose move', from, to);
       const san = this.tryMove(from+to);
       if (!san) return;
+      this.$amplitude.logEvent('ChooseMove', { san, from, to });
       this.proposedMove = san;
       this.didChooseMove = true;
       this.playAudio('Move');
     },
     async submitMove() {
       console.log('Submit move', this.proposedMove);
-      this.waiting = true;
+      this.$amplitude.logEvent('SubmitMove', { move: this.proposedMove });
 
       let algoz;
       if (!this.$recaptcha) await this.$recaptchaLoaded();
       const token = await this.$recaptcha('login');
+      this.authenticating = true;
       if ([ 'unknown', 'development', 'test' ].includes(this.wallet.network)) {
         // XXX This is the development endpoint.  We tell what block to use.
         const latestBlock = await this.provider.getBlockNumber();
@@ -103,28 +107,34 @@ export default {
           blocknumber: 12
         });
       } else {
+        this.$amplitude.logEvent('Authenticate', { algoz: this.algozKey });
         algoz = await axios.post('https://api.algoz.xyz/validate/', {
           application_id: this.algozKey,
           validation_proof: token
         });
       }
+      this.authenticating = false;
 
       if (algoz.status != 200) {
         console.error('Algoz failed with', algoz.status, algoz.data);
-        waiting = false;
         return;
       }
 
+      this.pending = true;
       await this.game['move(string,bytes1,bytes32,bytes32,bytes)']
                       (this.proposedMove
                      , '0x00'
                      , algoz.data.expiry_token
                      , algoz.data.auth_token
                      , algoz.data.signature_token);
+      this.pending = false;
+      this.waiting = true;
       this.playAudio('swell1');
       const eventFilter = this.game.filters.MoveSAN(this.wallet.address);
+      this.$amplitude.logEvent('SendTx', { type: 'move' });
       this.game.once(eventFilter, (player, san, flags) => {
         console.log('Move received', san, flags);
+        this.$amplitude.logEvent('ReceiveTx', { type: 'move', san, flags });
         this.waiting = false;
         this.didChooseMove = false;
         this.playAudio('Blaster');
@@ -134,13 +144,17 @@ export default {
     async resign() {
       console.log('Resigning game', this.game.address);
       this.closeModal();
+      this.pending = true;
       await this.game.resign();
+      this.pending = false;
       this.waiting = true;
       this.playAudio('swell3');
       const { lobby } = this.contracts;
       const eventFilter = lobby.filters.GameFinished(this.game.address);
+      this.$amplitude.logEvent('SendTx', { type: 'resign' });
       lobby.once(eventFilter, game => {
         console.log('Resigned');
+        this.$amplitude.logEvent('ReceiveTx', { type: 'resign' });
         this.waiting = false;
         this.refreshGame();
       });
@@ -148,13 +162,17 @@ export default {
     async claimVictory() {
       console.log('Claiming victory', this.game.address);
       this.closeModal();
+      this.pending = true;
       await this.game.claim();
+      this.pending = false;
       this.waiting = true;
       this.playAudio('swell2');
       const { lobby } = this.contracts;
       const eventFilter = lobby.filters.GameFinished(this.game.address);
+      this.$amplitude.logEvent('SendTx', { type: 'victory' });
       lobby.once(eventFilter, (game, winner) => {
         console.log('Victory', winner);
+        this.$amplitude.logEvent('ReceiveTx', { type: 'victory' });
         this.waiting = false;
         this.refreshGame();
       });
@@ -201,16 +219,17 @@ export default {
           <div class='text-ms margin-tb'>
             <div id='action-indicator' class='flex flex-center align-center'>
               <div v-if='gameOver' class='text-sentance'>Game Over</div>
-              <div v-else-if='waiting && didChooseMove' id='pending-tx' class='text-sentance' />
+              <div v-else-if='authenticating || waiting' id='pending-tx' class='text-sentance' />
+              <div v-else-if='pending'>Submit Move</div>
               <div v-else-if='didChooseMove' class='text-sentance'>Submit Move</div>
               <div v-else-if='isCurrentMove' class='text-sentance'>Your Move</div>
               <div v-else-if='isOpponentsMove' class='text-sentance'>Opponent's Move</div>
               <div v-else class='text-sentance'>Spectating</div>
             </div>
 
-            <div id='opponent'>
-              {{ truncAddress(opponent) }}
-            </div>
+            <div v-if='authenticating'>Authenticating</div>
+              <div v-else-if='waiting'>Pending...</div>
+            <div v-else>{{ truncAddress(opponent) }}</div>
           </div>
 
           <div id='timer'>

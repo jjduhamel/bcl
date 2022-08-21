@@ -31,9 +31,12 @@ export default {
                                 , this.timePerMove
                                 , { value: `${this.balanceDiff}` });
       this.waiting = true;
+      this.$amplitude.logEvent('SendTx', { type: 'ModifyChallenge', contract: this.challenge.address });
       const eventFilter = lobby.filters.ModifiedChallenge(this.challenge.address, this.address);
       this.challenge.once(eventFilter, async player => {
         console.log('Modified challenge', this.challenge.address);
+        this.$amplitude.logEvent('ReceiveTx', { type: 'ModifyChallenge', contract: addr });
+        this.refreshChallenge();
         this.waiting = false;
       });
     },
@@ -42,11 +45,13 @@ export default {
       const { lobby } = this.contracts;
       await this.challenge.accept({ value: `${this.balanceDiff}` });
       this.waiting = true;
+      this.$amplitude.logEvent('SendTx', { type: 'AcceptChallenge', contract: this.challenge.address });
       const eventFilter = lobby.filters.AcceptedChallenge(this.challenge.address, this.address);
       lobby.once(eventFilter, (addr, p1, p2) => {
         console.log('New game created', addr);
-        this.waiting = false;
+        this.$amplitude.logEvent('ReceiveTx', { type: 'AcceptChallenge', contract: addr });
         this.refreshChallenge();
+        this.waiting = false;
       });
     },
     async decline() {
@@ -54,23 +59,27 @@ export default {
       const { lobby } = this.contracts;
       await this.challenge.decline();
       this.waiting = true;
+      this.$amplitude.logEvent('SendTx', { type: 'DeclineChallenge', contract: this.challenge.address });
       const eventFilter = lobby.filters.CanceledChallenge(this.challenge.address, this.address);
       lobby.once(eventFilter, (addr, p1, state) => {
         console.log('Challenge declined', addr);
-        this.waiting = false;
+        this.$amplitude.logEvent('ReceiveTx', { type: 'DeclineChallenge', contract: addr });
         this.refreshChallenge();
+        this.waiting = false;
       });
     },
     async cancel() {
       console.log('Cancel challenge');
       await this.challenge.cancel();
       this.waiting = true;
+      this.$amplitude.logEvent('SendTx', { type: 'CancelChallenge', contract: this.contract.address });
       const { lobby } = this.contracts;
       const eventFilter = lobby.filters.CanceledChallenge(this.challenge.address, this.address);
       lobby.once(eventFilter, (addr, p1, state) => {
         console.log('Challenge cancelled', addr);
-        this.waiting = false;
+        this.$amplitude.logEvent('ReceiveTx', { type: 'CancelChallenge', contract: addr });
         this.refreshChallenge();
+        this.waiting = false;
       });
     },
     async listenForAccepted() {
